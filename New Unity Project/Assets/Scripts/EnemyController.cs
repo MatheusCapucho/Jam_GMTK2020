@@ -6,11 +6,14 @@ public class EnemyController : MonoBehaviour
 {
 
     public GameObject player;
+    public SpriteRenderer sr;
     private Rigidbody2D rb; 
     private float speed = 10f;
+    int hearts = 2;
 
     void Start()
     {
+        sr = GetComponent<SpriteRenderer>();
         rb = GetComponent<Rigidbody2D>();
     }
     void FixedUpdate()
@@ -19,17 +22,30 @@ public class EnemyController : MonoBehaviour
     }
     private void OnCollisionEnter2D (Collision2D other)
     {
-        if (other.gameObject.CompareTag("Player"))
+        if (other.gameObject.CompareTag("Weapon"))
         {
-            //perde vida ou morre 
+            hearts--;
+            if (hearts <= 0)
+            {
+                Die();
+            }
         }
-        if (other.gameObject.CompareTag("Ground"))
+        if (other.gameObject.CompareTag("Obstacle"))
         {
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
             speed = -speed;
         }
+    }
+
+    private void Die()
+    {
+        player.GetComponent<PlayerController>().speed *= -1;
+        player.GetComponent<PlayerController>().trocar *= -1;
+        sr.enabled = false;
+        //morra
+
     }
 
 }

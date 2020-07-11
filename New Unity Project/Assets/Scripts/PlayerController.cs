@@ -7,22 +7,27 @@ public class PlayerController : MonoBehaviour
 {
    
     private float movementInput;
-    private float speed = 5f;
-    private float jumpForce = 10f;
-    private float dashForce;
+    public float speed = 5f;
+    public float jumpForce = 10f;
+    public float dashForce;
     private Rigidbody2D rb;
-    public Transform attackPoint; 
     public Vector2 playerPos;
-    bool isGrounded = true;
-    bool trocar;
+    public int trocar = 1;
     int weaponIndex = 0;
-    float weaponRange = 10f;
+    public Transform attackPoint; 
+    public float weaponRange = 10f;
     bool isFacingRight;
+    public float attackRate = 1f;
+    public float nextAttack = 0f;
+    public BoxCollider2D col;
+    public Animator animator;
+    public LayerMask groundMask;
+    public LayerMask enemies;
 
     private void Awake()
     {
         rb = this.gameObject.GetComponent<Rigidbody2D>();
-        trocar = true;
+        col = this.gameObject.GetComponent<BoxCollider2D>();
     }
     private void start()
     {
@@ -35,14 +40,14 @@ public class PlayerController : MonoBehaviour
         movementInput = Input.GetAxisRaw("Horizontal");
 
         //flip
-        if (isFacingRight && movementInput * speed < 0)
+        if (isFacingRight && movementInput * speed > 0)
         {
             isFacingRight = false;
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
         }
-        if (!isFacingRight && movementInput * speed > 0)
+        if (!isFacingRight && movementInput * speed < 0)
         {
             isFacingRight = true;
             Vector3 theScale = transform.localScale;
@@ -50,17 +55,20 @@ public class PlayerController : MonoBehaviour
             transform.localScale = theScale;
         }
 
-        //attack
-        if (Input.GetKeyDown(KeyCode.F)) 
+        if (Time.time > nextAttack)
         {
-            Attack();
-        }
-
-        //pular ou dash - trocando
-        if (trocar)
-        {
-            if (Input.GetKeyDown(KeyCode.UpArrow))
+            if (Input.GetKeyDown(KeyCode.F))
             {
+                Attack();
+                nextAttack = Time.time + attackRate;
+            }
+        }
+        //pular ou dash - trocando
+        if (trocar > 0)
+        {
+            if (Input.GetKeyDown(KeyCode.UpArrow) && IsGrounded())
+            {
+                //animacao de pulo
                 rb.velocity = Vector2.up * jumpForce;
             }
 
@@ -75,9 +83,10 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(Dash()); 
             }
 
-            if (Input.GetKeyDown(KeyCode.Space))
+            if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
             {
                 rb.velocity = Vector2.up * jumpForce;
+                //animacao de pulo
             }
         }
 
@@ -87,13 +96,32 @@ public class PlayerController : MonoBehaviour
         rb.velocity = new Vector2(movementInput * (speed + dashForce), rb.velocity.y);
     }
 
+     private bool IsGrounded()
+    {
+        RaycastHit2D hit = Physics2D.Raycast(col.bounds.center, Vector2.down, col.bounds.extents.y + 0.1f, groundMask);
+        return hit.collider != null;
+    }
+
     private void Attack()
     {
-        Physics2D.Raycast(playerPos, Vector2.right, weaponRange, 8);
-        //animacao
+        Debug.Log("Ataquei");
+        //animator.SetTrigger("Attack");
+
+        Collider2D[] hit = Physics2D.OverlapCircleAll(attackPoint.position, weaponRange);//animacao
+        foreach( Collider2D enemy in hit)
+        {
+            Debug.Log("Hitei o inimigo");
+        }
         //mudar o colider
         //diferentes armas (switch-case)
-        //if(enemyKilled) {  trocar = !trocar; speed = -speed; dashForce = -dashForce; }
+    }
+    private void OnDrawGizmosSelected()
+    {
+        if (attackPoint == null)
+        {
+            return;
+        }
+        Gizmos.DrawWireSphere(attackPoint.position, weaponRange);
     }
     IEnumerator Dash()
     {

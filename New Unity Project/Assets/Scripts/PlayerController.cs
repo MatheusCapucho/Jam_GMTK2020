@@ -107,7 +107,7 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Ataquei");
         //animator.SetTrigger("Attack");
 
-        Collider2D[] hit = Physics2D.OverlapCircleAll(attackPoint.position, weaponRange);//animacao
+        Collider2D[] hit = Physics2D.OverlapCircleAll(attackPoint.position, weaponRange, enemies);//animacao
         foreach( Collider2D enemy in hit)
         {
             Debug.Log("Hitei o inimigo");

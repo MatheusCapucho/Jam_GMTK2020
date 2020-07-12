@@ -12,8 +12,9 @@ public class PlayerController : MonoBehaviour
     public float dashForce;
     private Rigidbody2D rb;
     public Vector2 playerPos;
-    public int trocar = 1;
-    int weaponIndex = 0;
+    private int auxtrocar = 1;
+    public int trocar;
+   // int weaponIndex = 0;
     public Transform attackPoint; 
     public float weaponRange = 10f;
     bool isFacingRight;
@@ -23,36 +24,52 @@ public class PlayerController : MonoBehaviour
     public Animator animator;
     public LayerMask groundMask;
     public LayerMask enemies;
+    int weaponDamage = 25;
+    int currentWeaponDamage;
+    int health = 2;
+    public int currrentHealth;
 
     private void Awake()
     {
+        currrentHealth = health;
+        currentWeaponDamage = weaponDamage;
+        animator = this.gameObject.GetComponent<Animator>();
         rb = this.gameObject.GetComponent<Rigidbody2D>();
         col = this.gameObject.GetComponent<BoxCollider2D>();
     }
-    private void start()
+    private void Start()
     {
+        trocar = auxtrocar;
         isFacingRight = true;
         
     }
 
     void Update()
     {
-        movementInput = Input.GetAxisRaw("Horizontal");
+        movementInput = Input.GetAxis("Horizontal");
 
         //flip
-        if (isFacingRight && movementInput * speed > 0)
+        if (isFacingRight && movementInput * speed < 0)
         {
+            animator.SetBool("Running", true);
             isFacingRight = false;
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
         }
-        if (!isFacingRight && movementInput * speed < 0)
+
+        if (!isFacingRight && movementInput * speed > 0)
         {
+            animator.SetBool("Running", true);
             isFacingRight = true;
             Vector3 theScale = transform.localScale;
             theScale.x *= -1;
             transform.localScale = theScale;
+        }
+
+        if (movementInput == 0)
+        {
+            animator.SetBool("Running", false);
         }
 
         if (Time.time > nextAttack)
@@ -105,12 +122,12 @@ public class PlayerController : MonoBehaviour
     private void Attack()
     {
         Debug.Log("Ataquei");
-        //animator.SetTrigger("Attack");
+        animator.SetTrigger("Attack");
 
         Collider2D[] hit = Physics2D.OverlapCircleAll(attackPoint.position, weaponRange, enemies);//animacao
         foreach( Collider2D enemy in hit)
         {
-            Debug.Log("Hitei o inimigo");
+            enemy.GetComponent<EnemyController>().TakeDamage(currentWeaponDamage);
         }
         //mudar o colider
         //diferentes armas (switch-case)
@@ -125,7 +142,7 @@ public class PlayerController : MonoBehaviour
     }
     IEnumerator Dash()
     {
-        dashForce = 10f;
+        dashForce = 50f;
         yield return new WaitForSeconds(0.2f);
         dashForce = 0f;
     }

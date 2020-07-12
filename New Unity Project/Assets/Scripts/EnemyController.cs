@@ -7,7 +7,7 @@ public class EnemyController : MonoBehaviour
 
     public GameObject player;
     public SpriteRenderer sr;
-    private Rigidbody2D rb; 
+    private Rigidbody2D rb;
     private float speed = 10f;
     int health = 50;
     public int currentHealth = 50;
@@ -51,6 +51,9 @@ public class EnemyController : MonoBehaviour
     {
         player.GetComponent<PlayerController>().speed *= -1;
         player.GetComponent<PlayerController>().trocar *= -1;
+        player.GetComponent<PlayerController>().weaponIndex = Random.Range(0, 3);
+        player.GetComponent<PlayerController>().ChangeWeapon0();
+
         Destroy(this.gameObject);
         //morra
 

@@ -14,7 +14,7 @@ public class PlayerController : MonoBehaviour
     public Vector2 playerPos;
     private int auxtrocar = 1;
     public int trocar;
-   // int weaponIndex = 0;
+    public int weaponIndex;
     public Transform attackPoint; 
     public float weaponRange = 10f;
     bool isFacingRight;
@@ -24,10 +24,15 @@ public class PlayerController : MonoBehaviour
     public Animator animator;
     public LayerMask groundMask;
     public LayerMask enemies;
-    int weaponDamage = 25;
+    int weaponDamage = 60;
     int currentWeaponDamage;
     int health = 2;
     public int currrentHealth;
+
+    private Transform espada0;
+    private Transform espada1;
+    private Transform lanca2;
+
 
     private void Awake()
     {
@@ -39,6 +44,11 @@ public class PlayerController : MonoBehaviour
     }
     private void Start()
     {
+        espada0 = transform.Find("Espada0anim");
+        espada1 = transform.Find("Espada1anim");
+        lanca2 = transform.Find("Lanca2anim");
+
+        weaponIndex = 0;
         trocar = auxtrocar;
         isFacingRight = true;
         
@@ -48,7 +58,6 @@ public class PlayerController : MonoBehaviour
     {
         movementInput = Input.GetAxis("Horizontal");
 
-        //flip
         if (isFacingRight && movementInput * speed < 0)
         {
             animator.SetBool("Running", true);
@@ -85,7 +94,7 @@ public class PlayerController : MonoBehaviour
         {
             if (Input.GetKeyDown(KeyCode.UpArrow) && IsGrounded())
             {
-                //animacao de pulo
+                animator.SetTrigger("Jump");
                 rb.velocity = Vector2.up * jumpForce;
             }
 
@@ -103,7 +112,7 @@ public class PlayerController : MonoBehaviour
             if (Input.GetKeyDown(KeyCode.Space) && IsGrounded())
             {
                 rb.velocity = Vector2.up * jumpForce;
-                //animacao de pulo
+                animator.SetTrigger("Jump");
             }
         }
 
@@ -121,16 +130,57 @@ public class PlayerController : MonoBehaviour
 
     private void Attack()
     {
-        Debug.Log("Ataquei");
-        animator.SetTrigger("Attack");
+        if (weaponIndex == 0)
+        {
+            animator.SetTrigger("Attack0");
+            
+        } else if (weaponIndex == 1)
+        {
+            animator.SetTrigger("Attack0");
+        } else if (weaponIndex == 2)
+        {
+            animator.SetTrigger("Attack2");
+        }
+        else if (weaponIndex == 3)
+        {
+            animator.SetTrigger("Attack3");
+        }
 
-        Collider2D[] hit = Physics2D.OverlapCircleAll(attackPoint.position, weaponRange, enemies);//animacao
+        Collider2D[] hit = Physics2D.OverlapCircleAll(attackPoint.position, weaponRange, enemies);
         foreach( Collider2D enemy in hit)
         {
             enemy.GetComponent<EnemyController>().TakeDamage(currentWeaponDamage);
         }
-        //mudar o colider
-        //diferentes armas (switch-case)
+    }
+
+    public void ChangeWeapon0()
+    {
+        StartCoroutine(ChangeWeapon());
+    }
+    IEnumerator ChangeWeapon()
+    {
+        if (weaponIndex == 0)
+        {
+            yield return new WaitForSeconds (1f);
+            transform.GetChild(1).gameObject.SetActive(true);
+            transform.GetChild(2).gameObject.SetActive(false);
+            transform.GetChild(3).gameObject.SetActive(false);
+            
+        }
+        if (weaponIndex == 1)
+        {
+            yield return new WaitForSeconds(1f);
+            transform.GetChild(1).gameObject.SetActive(false);
+            transform.GetChild(2).gameObject.SetActive(true);
+            transform.GetChild(3).gameObject.SetActive(false);
+        }
+        if (weaponIndex == 2)
+        {
+            yield return new WaitForSeconds(1f);
+            transform.GetChild(1).gameObject.SetActive(false);
+            transform.GetChild(2).gameObject.SetActive(false);
+            transform.GetChild(3).gameObject.SetActive(true);
+        }
     }
     private void OnDrawGizmosSelected()
     {
